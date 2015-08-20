@@ -11,13 +11,16 @@ def sigmoid(x, x0, g):
 
 def prior(muvec):
 	return stats.multivariate_normal.pdf(muvec, mean=[0,0,0,0], cov=2)
-
+	
 def slikelihood(choice, ids, muvec):
 	#sA=np.random.normal(muvec[ids[0]], sig)
 	#sB=np.random.normal(muvec[ids[1]], sig)
 	#return int(choice == int(sA>sB)) #Luce here?!
 	#return sigmoid((sA-sB)*(-1)**choice,0,2)#, sA-sB)
-	return sigmoid((muvec[ids[0]]-muvec[ids[1]])*(-1)**choice,0,2)#, sA-sB)
+	s=muvec[ids[0]]-muvec[ids[1]]	
+	#return sigmoid(s*(-1)**choice,0,3)#, sA-sB)
+	return stats.norm.cdf(0, loc=s, scale=2)*(-1)**choice+choice
+
 
 def likelihood(allchoices, allids, muvec):
 	lik=1
@@ -36,11 +39,11 @@ def main():
 	#print likelihood([0,0],[[0,1],[0,1]],[0,1,0,0])
 	#print posterior([0,0,0,0], choices, ids)
 	
-	choices = [0,0,0,0,0,0,0,0]#,1]
-	ids =[[0,1], [0,1], [0,1], [0,1], [1,2], [2,3], [1,2], [1,3]]
+	choices = [0,0,0,0]#,0,0,0,1]#,1]
+	ids =[[0,2], [0,1], [0,1], [0,1]]#, [1,2], [2,3], [1,2], [1,3]]
 	#ids =[[2,3], [2,3], [2,3], [2,3]]#, [1,2]]
 	#data = (choices, ids)
-	npoints=11
+	npoints=9
 	x=np.linspace(-1,1,npoints)
 	y=np.linspace(-1,1,npoints)
 	z=np.linspace(-1,1,npoints)
@@ -65,6 +68,7 @@ def main():
 	#print post.shape
 	X,Y=np.meshgrid(x,y)
 	plt.contourf(X,Y,post[:,:,npoints/2,npoints/2])
+	#plt.contourf(X,Y, map(lambda b: map(lambda a: 2*a+b, x),y))
 	plt.show()
 
 if __name__ == '__main__':
