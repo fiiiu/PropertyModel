@@ -6,9 +6,9 @@ import matplotlib.pyplot as plt
 
 #Probabilistic Model
 def prior(muvec, sigvec):
-	return stats.multivariate_normal.pdf(muvec, mean=[0,0,0], cov=2)*\
-			stats.invgamma.pdf(sigvec[0], a=1)*stats.invgamma.pdf(sigvec[1], a=1)*\
-			stats.invgamma.pdf(sigvec[2], a=1)
+	return stats.multivariate_normal.pdf(muvec, mean=[0], cov=2)*\
+			stats.invgamma.pdf(sigvec[0], a=1)#*stats.invgamma.pdf(sigvec[1], a=1)*\
+			#stats.invgamma.pdf(sigvec[2], a=1)
 
 
 
@@ -43,7 +43,7 @@ heaviside = lambda x: 0.5 if x == 0 else 0 if x < 0 else 1
 def MCMC(data, nsamples, burnin=0):
 	samples=[]
 	nacc=0
-	xcur = [(0,0,0),(1,1,1)]
+	xcur = [[0],[1]]
 	for i in range(nsamples+burnin):
 		xnew=propose(xcur)
 		if i >= burnin:
@@ -56,14 +56,17 @@ def MCMC(data, nsamples, burnin=0):
 
 
 def propose(xcur):
-	idmat = 0.1*np.eye(3)
-	mus = np.random.multivariate_normal(xcur[0], cov=idmat)
+	idmat = 0.1*np.eye(1)
+	var=0.1
+	#mus = np.random.multivariate_normal(xcur[0], cov=idmat)
+	mus = [np.random.normal(xcur[0], var)]
 	#sigs = map(heaviside, np.random.multivariate_normal(xcur[1], cov=idmat))
-	sigs = np.random.multivariate_normal(xcur[1], cov=idmat)
+	#sigs = np.random.multivariate_normal(xcur[1], cov=idmat)
+	sigs = [np.random.normal(xcur[1], var)]
 	return (mus, sigs)
 
 def accept(xnew, xcur, data):
-	if xnew[1][0] < 0 or xnew[1][1] < 0 or xnew[1][2]< 0:
+	if xnew[1][0] < 0:# or xnew[1][1] < 0 or xnew[1][2]< 0:
 		return False
 	alpha = uposterior(xnew[0], xnew[1], data[0], data[1])/ \
 			uposterior(xcur[0], xcur[1], data[0], data[1]) #BALANCE THIS!! 
@@ -79,8 +82,8 @@ def main():
 	#print likelihood([0,0],[[0,1],[0,1]],[0,1,0,0])
 	#print posterior([0,0,0,0], choices, ids)
 	
-	choices = [0,0,0]#,0,0,0,0]#,0,0,0,1]#,1]
-	ids =[[2,3],[1,2],[0,1]]#, [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
+	choices = [0,0,1,1]#,0,0,0,0]#,0,0,0,1]#,1]
+	ids =[[0,1],[0,1],[0,1],[0,1]]#, [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
 	#ids =[[2,3], [2,3], [2,3], [2,3]]#, [1,2]]
 	
 	data = (choices, ids)
@@ -90,7 +93,7 @@ def main():
 	print samps.shape
 	print samps.mean(axis=0)
 	
-	plt.hist(samps[:,0,2])
+	#plt.hist(samps[:,0,0])
 	#plt.show()
 
 	# npoints=5
