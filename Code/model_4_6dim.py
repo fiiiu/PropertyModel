@@ -36,10 +36,21 @@ def posterior(muvec, sigvec, allchoices, allids):
 	return likelihood(allchoices, allids, muvec, sigvec)*prior(muvec, sigvec)
 
 
-def main():
-	choices = [0,0,0,0,0,0]#0,0,0,0,0]#,0,0,0,1]#,1]
-	ids =[[1,0],[1,3],[1,3],[1,3],[3,2],[2,3]]#[0,1], [0,1], [0,1], [2,3], [1,2]]#, [2,3], [1,2], [1,3]]
-	npoints=7
+def main(datafile='../Data/testdata50.csv'):
+	if datafile is None:
+		choices = [0,0,0,0,0,0]#0,0,0,0,0]#,0,0,0,1]#,1]
+		ids =[[1,0],[1,3],[1,3],[1,3],[3,2],[2,3]]#[0,1], [0,1], [0,1], [2,3], [1,2]]#, [2,3], [1,2], [1,3]]
+	else:
+		choices=[]
+		ids=[]
+		with open(datafile) as f:
+			for line in f:
+				choices.append(int(line[0]))
+				ids.append([int(line[2]),int(line[4])])
+
+
+
+	npoints=5
 	x=np.linspace(-1,1,npoints)
 	y=np.linspace(-1,1,npoints)
 	z=np.linspace(-1,1,npoints)

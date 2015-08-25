@@ -46,27 +46,28 @@ def MCMC(data, nsamples, burnin=0):
 	xcur = [(0,0,0),(1,1,1)]
 	for i in range(nsamples+burnin):
 		xnew=propose(xcur)
-		if accept(xnew, xcur, data):
-			if i >= burnin:
-				samples.append(xnew)
+		if i >= burnin:
+			if accept(xnew, xcur, data):
 				nacc+=1
-			xcur=xnew			
-		elif i >= burnin:
+				xcur=xnew			
 			samples.append(xcur)
 	print "accept rate: {0}\%".format(float(nacc)/nsamples*100)
 	return samples
 
 
 def propose(xcur):
-	idmat = np.eye(3)
+	idmat = 0.001*np.eye(3)
 	mus = np.random.multivariate_normal(xcur[0], cov=idmat)
-	sigs = map(heaviside, np.random.multivariate_normal(xcur[1], cov=idmat))
+	#sigs = map(heaviside, np.random.multivariate_normal(xcur[1], cov=idmat))
+	sigs = np.random.multivariate_normal(xcur[1], cov=idmat)
 	return (mus, sigs)
 
 def accept(xnew, xcur, data):
+	if xnew[1][0] < 0 or xnew[1][1] < 0 or xnew[1][2]< 0:
+		return False
 	alpha = uposterior(xnew[0], xnew[1], data[0], data[1])/ \
 			uposterior(xcur[0], xcur[1], data[0], data[1]) #BALANCE THIS!! 
-	if min(1,alpha)>np.random.uniform():
+	if alpha>np.random.uniform():
 		return True
 	else:
 		return False
@@ -78,28 +79,29 @@ def main():
 	#print likelihood([0,0],[[0,1],[0,1]],[0,1,0,0])
 	#print posterior([0,0,0,0], choices, ids)
 	
-	choices = [0,0,0,0,0]#,0,0,0,1]#,1]
-	ids =[[2,3], [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
+	choices = [0,0,0]#,0,0,0,0]#,0,0,0,1]#,1]
+	ids =[[2,3],[1,2],[0,1]]#, [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
 	#ids =[[2,3], [2,3], [2,3], [2,3]]#, [1,2]]
 	
 	data = (choices, ids)
-	samps=np.array(MCMC(data, 2000, 100))
+	samps=np.array(MCMC(data, 5000, 500))
 	print len(samps)
 
 	print samps.shape
 	print samps.mean(axis=0)
+	
+	plt.hist(samps[:,0,2])
+	#plt.show()
 
-	# npoints=4
+	# npoints=5
 	# x=np.linspace(-1,1,npoints)
 	# y=np.linspace(-1,1,npoints)
 	# z=np.linspace(-1,1,npoints)
-	# w=np.linspace(-1,1,npoints)
 
 	# xs=np.linspace(0.01,4,npoints)
 	# ys=np.linspace(0.01,4,npoints)
 	# zs=np.linspace(0.01,4,npoints)
-	# ws=np.linspace(0.01,4,npoints)
-	
+
 	# # post=np.zeros((len(x),len(y)))
 	# # for i in enumerate(x):
 	# # 	for j in enumerate(y):
