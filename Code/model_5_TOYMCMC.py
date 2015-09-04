@@ -1,4 +1,7 @@
-
+##
+#
+# Toy sampler for MCMC testing. one mean + one sigma free. one + one fixed (0,1).
+#
 
 import scipy.stats as stats
 import numpy as np
@@ -34,11 +37,11 @@ def likelihood(allchoices, allids, muvec, sigvec):
 def uposterior(muvec, sigvec, allchoices, allids):
 	return likelihood(allchoices, allids, muvec, sigvec)*prior(muvec, sigvec)
 
+
 ###################################
-
-
 #Sampler
-heaviside = lambda x: 0.5 if x == 0 else 0 if x < 0 else 1
+
+#heaviside = lambda x: 0.5 if x == 0 else 0 if x < 0 else 1
 
 def MCMC(data, nsamples, burnin=0):
 	samples=[]
@@ -76,25 +79,58 @@ def accept(xnew, xcur, data):
 		return False
 
 
+################
+# perfect inference
+
+def perfect_inference(data, npoints=5):
+
+	choices, ids = data
+
+	mus=np.linspace(-4,4,npoints)
+	sigs=np.linspace(0.01,4,npoints)
+	
+	post=np.zeros((len(mus),len(sigs)))
+	for i, mu in enumerate(mus):
+		for j, sig in enumerate(sigs):
+			post[i][j]=uposterior([mu], [sig], choices, ids)
+
+	support=(mus,sigs)		
+	return support, post
+
+
+################
+# main
+
 def main():
 	#print prior([0,0,0,0])
 	#print slikelihood(0,[0,1],[0,1,0,0])
 	#print likelihood([0,0],[[0,1],[0,1]],[0,1,0,0])
 	#print posterior([0,0,0,0], choices, ids)
 	
-	choices = [0,0,1,1]#,0,0,0,0]#,0,0,0,1]#,1]
-	ids =[[0,1],[0,1],[0,1],[0,1]]#, [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
+	choices = [0]#,0,0,0]#,0,0,0,0]#,0,0,0,1]#,1]
+	ids =[[0,1]]#,[0,1],[0,1],[0,1]]#, [2,3], [2,3], [0,1], [1,2]]#, [2,3], [1,2], [1,3]]
 	#ids =[[2,3], [2,3], [2,3], [2,3]]#, [1,2]]
 	
 	data = (choices, ids)
 	samps=np.array(MCMC(data, 5000, 500))
+
+	support, truth=perfect_inference(data, 11)
+
 	print len(samps)
 
 	print samps.shape
 	print samps.mean(axis=0)
-	
-	#plt.hist(samps[:,0,0])
-	#plt.show()
+
+	mus=np.sum(truth,axis=1)
+	plt.plot(support[0], 5000*mus, 'r')
+	plt.hist(samps[:,0,0,0])
+	plt.show()
+
+
+	sigs=np.sum(truth,axis=0)
+	plt.plot(support[1],)
+	plt.hist(samps[:,1,0,0])
+	plt.show()
 
 	# npoints=5
 	# x=np.linspace(-1,1,npoints)
